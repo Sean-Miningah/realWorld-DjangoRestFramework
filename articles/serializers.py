@@ -55,11 +55,14 @@ class ArticleSerializer(TaggitSerializer, serializers.ModelSerializer):
         return instance.favorites.count()
        
     def create(self, validated_data):
-        
+        tags = validated_data.pop('tags')
+        print(tags)
         article = Article(
             author=self.context['request'].user,
             **validated_data
         )
         article.save()
+        article.tags.add(*tags)
+        print(article.tags.all())
         return article
         
