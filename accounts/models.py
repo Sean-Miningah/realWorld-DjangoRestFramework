@@ -20,12 +20,11 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
 
     # remove default fields
-    username = None
     first_name = None
     last_name = None
 
     email: str = models.EmailField("Email Address", unique=True)
-    name: str = models.CharField(max_length=60)
+    username: str = models.CharField(max_length=60)
     bio: str = models.TextField(blank=True)
     image: str | None = models.URLField(null=True, blank=True)
 

@@ -1,7 +1,66 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response 
+from rest_framework import status, views
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.mixins import ListModelMixin, UpdateModelMixin, DestroyModelMixin
+from rest_framework.permissions import IsAuthenticated
+
+from accounts.models import User
+from accounts.serializers import UserSerializer
 
 
 @api_view(['POST',])
-def user_registration(request):
-    return Response({"message": 'Hello World'})
+def account_registration(request):
+    try:
+        user_data = request.data.get('user')
+        
+        serializer = UserSerializer(data=user_data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()  
+        return Response({"user": serializer.data}, status=status.HTTP_201_CREATED)
+    
+    except Exception:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST',])
+def account_login(request):
+    try:
+        user_data = request.data.get('user')
+        user = authenticate(email=user_data['email'], password=user_data['password']) 
+        serializer = UserSerializer(user)
+        jwt_token = RefreshToken.for_user(user)
+        response_data = {
+            "user": serializer.data,
+            "access_token": str(jwt_token.access_token),
+            "refresh_token": str(jwt_token)
+        }
+        return Response(response_data, status=status.HTTP_202_ACCEPTED)
+    
+    except Exception:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserView(views.APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, format=None):
+        user = self.request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request, format=None, pk=None):
+        user = self.request.user
+        user_data = request.data.get('user')
+        
+        user.email = user_data['email'] 
+        user.bio = user_data['bio']
+        user.image = user_data['image']
+        user.save()
+        
+        serializer = UserSerializer(user)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        
+    
