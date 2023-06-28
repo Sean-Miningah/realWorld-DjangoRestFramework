@@ -28,7 +28,7 @@ class User(AbstractUser):
     bio: str = models.TextField(blank=True)
     image: str | None = models.URLField(null=True, blank=True)
 
-    followers = models.ManyToManyField("self", blank=True)
+    followers = models.ManyToManyField("self", blank=True, symmetrical=False)
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "email"
