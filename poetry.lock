@@ -38,6 +38,20 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "django-taggit"
+version = "4.0.0"
+description = "django-taggit is a reusable Django application for simple tagging."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "django-taggit-4.0.0.tar.gz", hash = "sha256:4d52de9d37245a9b9f98c0ec71fdccf1d2283e38e8866d40a7ae6a3b6787a161"},
+    {file = "django_taggit-4.0.0-py3-none-any.whl", hash = "sha256:eb800dabef5f0a4e047ab0751f82cf805bc4a9e972037ef12bf519f52cd92480"},
+]
+
+[package.dependencies]
+Django = ">=3.2"
+
+[[package]]
 name = "djangorestframework"
 version = "3.14.0"
 description = "Web APIs for Django, made easy."
@@ -75,6 +89,20 @@ doc = ["Sphinx (>=1.6.5,<2)", "sphinx-rtd-theme (>=0.1.9)"]
 lint = ["flake8", "isort", "pep8"]
 python-jose = ["python-jose (==3.3.0)"]
 test = ["cryptography", "pytest", "pytest-cov", "pytest-django", "pytest-xdist", "tox"]
+
+[[package]]
+name = "markdown"
+version = "3.4.3"
+description = "Python implementation of John Gruber's Markdown."
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "Markdown-3.4.3-py3-none-any.whl", hash = "sha256:065fd4df22da73a625f14890dd77eb8040edcbd68794bcd35943be14490608b2"},
+    {file = "Markdown-3.4.3.tar.gz", hash = "sha256:8bf101198e004dc93e84a12a7395e31aac6a9c9942848ae1d99b9d72cf9b3520"},
+]
+
+[package.extras]
+testing = ["coverage", "pyyaml"]
 
 [[package]]
 name = "pyjwt"
@@ -159,4 +187,4 @@ brotli = ["Brotli"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "8f80042f83b440576068b543c452815c25683597dc36d06afc9dfc2290aa3e6d"
+content-hash = "d19588968e6c32891b65b7adf62c92873e632760d87e0cd381d7b1313d96b9b6"

@@ -41,8 +41,10 @@ INSTALLED_APPS = [
     # 3rd Party Packages,
     'rest_framework',
     'rest_framework_simplejwt',
+    'taggit',
     # local Apps,
-    'accounts'
+    'accounts',
+    'articles'
 ]
 
 MIDDLEWARE = [

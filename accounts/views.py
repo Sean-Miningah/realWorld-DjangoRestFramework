@@ -1,9 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response 
-from rest_framework import status, views, viewsets, generics
+from rest_framework import status, views, viewsets
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.mixins import ListModelMixin, CreateModelMixin
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.models import User

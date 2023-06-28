@@ -25,7 +25,8 @@ api_prefix = 'api'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path(f'{api_prefix}/', include('accounts.urls'))
+    path(f'{api_prefix}/', include('accounts.urls')),
+    path(f'{api_prefix}/', include('articles.urls'))
 ]
 
 if settings.DEBUG:  
