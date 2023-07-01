@@ -18,7 +18,6 @@ class AuthorSerializer(serializers.ModelSerializer):
         
     def get_following(self, obj):
         user = self.context.get('request').user
-        print(user)
         if user.is_authenticated:
             return obj.followers.filter(pk=user.id).exists()
         return False
@@ -28,21 +27,23 @@ class ArticleSerializer(TaggitSerializer, serializers.ModelSerializer):
     slug = serializers.SlugField(required=False)
     description = serializers.CharField(source='summary')
     body = serializers.CharField(source='content')
-    tagList = TagListSerializerField(source='tags')
+    tagList = TagListSerializerField(source='tags', required=False)
     createdAt = serializers.DateTimeField(source='created',format='%Y-%m-%dT%H:%M:%S.%fZ', required=False)
     updatedAt = serializers.DateTimeField(source='updated',format='%Y-%m-%dT%H:%M:%S.%fZ', required=False)
     favorited = serializers.SerializerMethodField()
     favoritesCount = serializers.SerializerMethodField()
-    author = serializers.SerializerMethodField()
+    author = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
         model = Article
         fields = ['slug', 'title', 'description', 'body', 'tagList', 'createdAt',
                   'updatedAt', 'favorited', 'favoritesCount', 'author']
+        read_only_fields = ['slug', 'createdAt', 'updatedAt', 'author']
     
     def get_author(self, obj):
         request = self.context.get('request') 
-        serializer = AuthorSerializer(request.user, context={'request': request})
+        # serializer = AuthorSerializer(request.user, context={'request': request})
+        serializer = AuthorSerializer(obj.author, context={'request': request})
         return serializer.data
     
     def get_favorited(self, instance):
@@ -56,13 +57,22 @@ class ArticleSerializer(TaggitSerializer, serializers.ModelSerializer):
        
     def create(self, validated_data):
         tags = validated_data.pop('tags')
-        print(tags)
         article = Article(
             author=self.context['request'].user,
             **validated_data
         )
         article.save()
         article.tags.add(*tags)
-        print(article.tags.all())
         return article
+    
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags')
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        
+        instance.tags.clear()
+        instance.tags.add(*tags)
+        
+        return instance
         

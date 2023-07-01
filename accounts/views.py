@@ -30,9 +30,10 @@ def account_login(request):
         user = authenticate(email=user_data['email'], password=user_data['password']) 
         serializer = UserSerializer(user)
         jwt_token = RefreshToken.for_user(user)
-        serializer.data['token'] = str(jwt_token.access_token)
+        serializer_data = serializer.data
+        serializer_data['token'] = str(jwt_token.access_token)
         response_data = {
-            "user": serializer.data,
+            "user": serializer_data,
         }
         return Response(response_data, status=status.HTTP_202_ACCEPTED)
     
