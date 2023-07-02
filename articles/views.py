@@ -32,7 +32,7 @@ class ArticleView(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             headers = self.get_success_headers(serializer.data)
-            return Response({"article":serializer.data}, headers=headers)
+            return Response({"article":serializer.data}, status=status.HTTP_201_CREATED)
         
         except Exception:
             return Response({"errors": {
@@ -173,6 +173,7 @@ class ArticleView(viewsets.ModelViewSet):
                     "Bad Request"
                 ]
             }}, status=status.HTTP_404_NOT_FOUND)          
+
             
 class TagView(viewsets.GenericViewSet, mixins.ListModelMixin):
     queryset = Tag.objects.all()

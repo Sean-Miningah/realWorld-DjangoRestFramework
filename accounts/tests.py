@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APITestCase
 from django.urls import reverse 
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.tokens import  AccessToken
 
 # from accounts.models import User
 User = get_user_model()
@@ -156,3 +156,4 @@ class ProfileDetailViewTestCase(APITestCase):
         response = self.client.delete(unfollow_url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
