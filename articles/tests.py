@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework.test import APITestCase
-from django.urls import reverse 
+from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import  AccessToken
 
@@ -37,12 +36,33 @@ class ArticleViewSetTest(APITestCase):
             'slug' : 'test-slug'
         }
     
+    def test_get_articles(self):
+        url = '/api/articles'
+        
+        new_client = APIClient()
+        response = new_client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+    def test_get_article_feed(self):
+        url = '/api/articles/feed'
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
     def test_create_article(self):
         url = '/api/articles'
         response = self.client.post(url, data=self.article_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         
-    
+    def test_get_article(self):
+        article = Article.objects.create(
+            **self.article_create_data
+        )
+        url = f'/api/articles/{article.slug}'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        
     def test_update_article(self):
         article = Article.objects.create(
             **self.article_create_data

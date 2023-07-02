@@ -19,7 +19,7 @@ class ArticleView(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
     
     def get_permissions(self):
-        if self.action == 'retrieve':
+        if self.action == 'retrieve' or self.action == 'list':
             return [IsAuthenticatedOrReadOnly()]
 
         return super().get_permissions()
@@ -113,7 +113,6 @@ class ArticleView(viewsets.ModelViewSet):
         try:
             queryset = self.get_queryset()
             article = queryset.get(slug=slug)
-            print(article.title)
             serializer = self.get_serializer(article)
             
             return Response({"article": serializer.data})

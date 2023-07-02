@@ -28,5 +28,4 @@ class CommentSerializer(serializers.ModelSerializer):
             article=self.context['article']
         )
         comment.save()
-        print(comment.content)
         return comment
