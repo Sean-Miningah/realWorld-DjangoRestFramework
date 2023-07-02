@@ -91,7 +91,7 @@ class ProfileDetailView(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post', 'delete'])
     def follow(self, request, username=None, *args, **kwargs):
-        if self.method == 'POST':
+        if request.method == 'POST':
           
             profile = self.get_object()
             follower = request.user
@@ -106,7 +106,7 @@ class ProfileDetailView(viewsets.ModelViewSet):
             serializer = self.get_serializer(profile)
             return Response({ "profile": serializer.data })  
             
-        elif self.method == 'DELETE':
+        elif request.method == 'DELETE':
             
             profile = self.get_object()
             follower = request.user

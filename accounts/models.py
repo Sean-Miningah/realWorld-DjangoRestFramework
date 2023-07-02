@@ -15,7 +15,7 @@ class UserManager(BaseUserManager):
             user.set_unusable_password()
             
         user.save()
-        return User
+        return user
 
 class User(AbstractUser):
 
