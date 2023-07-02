@@ -16,6 +16,7 @@ markdown = "^3.4.3"
 django-filter = "^23.2"
 drf-yasg = "^1.21.6"
 coreapi = "^2.3.3"
+psycopg2 = "^2.9.6"
 
 
 [build-system]

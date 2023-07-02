@@ -1,0 +1,10 @@
+django == 4.2.2
+djangorestframework == 3.14.0
+djangorestframework-simplejwt == 5.2.2
+whitenoise == 6.5.0
+django-taggit == 4.0.0
+markdown == 3.4.3
+django-filter == 23.2
+drf-yasg == 1.21.6
+coreapi == 2.3.3
+psycopg2 ==2.9.6

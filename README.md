@@ -13,11 +13,50 @@ We've gone to great lengths to adhere to the Django Rest Framework community sty
 For more information on how to this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
 
 
-# How it works
+# Usage
 
-> Describe the general architecture of your app here
+1. Clone the Git repository:
 
-# Getting started
+```shell
+  git clone https://github.com/Sean-Miningah/realWorld-DjangoRestFramework.git
 
-> npm install, npm start, etc.
+```
+2. Create Virtual Environment
+```shell
+  cd project_directory
+  python3 -m venv venv 
+  pip3 install -r requirements.txt
+```
+
+make sure you a postgres database configured for connection
+
+3. Run Application
+> python manage.py runserver 
+
+## Using Docker and Docker Compose 
+
+Run:
+> docker compose up
+
+# API Documentation 
+
+The project provides API documentation using Swagger. To access the API documentation, follow these steps:
+
+Ensure that the project is running by executing the command mentioned in the "Usage" section.
+
+Open a web browser and navigate to the following endpoint:
+
+```bash
+/swagger
+```
+# Contributing
+If you would like to contribute to the project, please follow these guidelines:
+
+1. Fork the repository and create a new branch for your feature or bug fix.
+
+2. Make the necessary changes and commit them.
+
+3. Push your changes to your forked repository.
+
+4. Submit a pull request to the main repository, explaining the changes you made and any additional information that might be helpful for review.
 
