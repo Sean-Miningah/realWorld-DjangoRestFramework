@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status, views, viewsets
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 
 from accounts.models import User
 from accounts.serializers import UserSerializer, ProfileSerializer
@@ -69,15 +69,18 @@ class ProfileDetailView(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [IsAuthenticated]
     lookup_field = 'username'
+    http_method_names = ['get', 'post', 'delete']
+    
+    def get_permissions(self):
+        if self.action == 'list':
+            return [IsAuthenticatedOrReadOnly(),]
+        return super().get_permissions()
     
     def list(self, request, username=None, *args, **kwargs):
         try: 
             profile = User.objects.get(username=username)
-            follower = request.user
             serializer = self.get_serializer(profile)
-            response = serializer.data
-            response['following'] = profile.followers.filter(pk=follower.id).exists()
-            return Response({"profile":response})
+            return Response({"profile": serializer.data})
 
         except Exception:
             return Response({"errors": {
@@ -86,44 +89,43 @@ class ProfileDetailView(viewsets.ModelViewSet):
                 ]
             }})
     
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post', 'delete'])
     def follow(self, request, username=None, *args, **kwargs):
-        profile = self.get_object()
-        follower = request.user
-        if profile == follower:
-            return Response({"errors": {
-                "body": [
-                    "Invalid follow Request"
-                ]
-            }}, status=status.HTTP_400_BAD_REQUEST)
+        if self.method == 'POST':
+          
+            profile = self.get_object()
+            follower = request.user
+            if profile == follower:
+                return Response({"errors": {
+                    "body": [
+                        "Invalid follow Request"
+                    ]
+                }}, status=status.HTTP_400_BAD_REQUEST)
+                
+            profile.followers.add(follower)
+            serializer = self.get_serializer(profile)
+            return Response({ "profile": serializer.data })  
             
-        profile.followers.add(follower)
-        serializer = self.get_serializer(profile)
-        response = serializer.data
-        response['following'] = profile.followers.filter(pk=follower.id).exists()
-        return Response(response)
+        elif self.method == 'DELETE':
             
-    @action(detail=True, methods=['delete'])
-    def unfollow(self, request, username=None, *args, **kwargs):
-        profile = self.get_object()
-        follower = request.user
-        if profile == follower:
-            return Response({"errors": {
-                "body": [
-                    "Invalid follow Request"
-                ]
-            }}, status=status.HTTP_400_BAD_REQUEST)
-            
-        if not profile.followers.filter(pk=follower.id).exists():
-            return Response({"errors": {
-                "body": [
-                    "Invalid follow Request"
-                ]
-            }}, status=status.HTTP_400_BAD_REQUEST)
-            
-        profile.followers.remove(follower)
-        serializer = self.get_serializer(profile)
-        response = serializer.data
-        response['following'] = profile.followers.filter(pk=follower.id).exists()
-        return Response(response)
+            profile = self.get_object()
+            follower = request.user
+            if profile == follower:
+                return Response({"errors": {
+                    "body": [
+                        "Invalid follow Request"
+                    ]
+                }}, status=status.HTTP_400_BAD_REQUEST)
+                
+            if not profile.followers.filter(pk=follower.id).exists():
+                return Response({"errors": {
+                    "body": [
+                        "Invalid follow Request"
+                    ]
+                }}, status=status.HTTP_400_BAD_REQUEST)
+                
+            profile.followers.remove(follower)
+            serializer = self.get_serializer(profile)
+            return Response({ "profile": serializer.data })
+        
             

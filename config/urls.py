@@ -39,7 +39,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-redoc'),
     path(f'{api_prefix}/', include('accounts.urls')),
-    path(f'{api_prefix}/', include('articles.urls'))
+    path(f'{api_prefix}/', include('articles.urls')),
+    path(f'{api_prefix}/', include('comments.urls'))
 ]
 
 if settings.DEBUG:  

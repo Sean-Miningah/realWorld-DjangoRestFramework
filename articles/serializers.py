@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth import get_user_model
+from taggit.models import Tag
 from taggit.serializers import (TagListSerializerField,
                                 TaggitSerializer)
 
@@ -75,4 +76,10 @@ class ArticleSerializer(TaggitSerializer, serializers.ModelSerializer):
         instance.tags.add(*tags)
         
         return instance
+    
+    
+class TagSerializer(serializers.Serializer):
+    tags = serializers.ListField(
+        child=serializers.CharField()
+    )
         
