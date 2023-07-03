@@ -17,6 +17,8 @@ django-filter = "^23.2"
 drf-yasg = "^1.21.6"
 coreapi = "^2.3.3"
 psycopg2 = "^2.9.6"
+dj-database-url = "^2.0.0"
+load-dotenv = "^0.1.0"
 
 
 [build-system]
