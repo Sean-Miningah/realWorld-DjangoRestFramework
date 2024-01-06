@@ -16,6 +16,20 @@ class UserManager(BaseUserManager):
             
         user.save()
         return user
+    
+    def create_superuser(self, email: str, password: str | None = None, **other_fields) -> User:
+        other_fields.setdefault("is_staff", True)
+        other_fields.setdefault("is_superuser", True)
+        other_fields.setdefault("is_active", True)
+        
+        if other_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must be assigned to is_staff=True.")
+        if other_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must be assigned to is_superuser=True.")
+        
+        return self.create_user(email, password, **other_fields)
+    
+    
 
 class User(AbstractUser):
 
@@ -38,7 +52,14 @@ class User(AbstractUser):
 
 
     def get_full_name(self) -> str:
-        return self.name
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        else: 
+            return self.username
+       
 
     def get_short_name(self) -> str:
-        return self.name
+        if self.first_name and self.last_name:
+            return f"{self.first_name[0]}{self.last_name}"
+        else:
+            return self.username
