@@ -32,6 +32,25 @@ class AccountRegistrationTestCase(APITestCase):
         response = self.client.post(url, invalid_user_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_duplicate_account_registration(self):
+        # First registration
+        url = '/api/users'
+        user_data = {
+            'user': {
+                'email': 'test@example.com',
+                'password': 'testpassword',
+                'username': 'testuser',
+            }
+        }
+
+        response = self.client.post(url, user_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Duplicate registration
+        duplicate_response = self.client.post(url, user_data, format='json')
+        self.assertEqual(duplicate_response.status_code, status.HTTP_400_BAD_REQUEST)
+
    
     
 class AccountLoginTestCase(APITestCase):
@@ -69,6 +88,33 @@ class AccountLoginTestCase(APITestCase):
         response = self.client.post(self.url, invalid_user_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_account_login_invalid_password(self):
+        user_data = {
+            'user': {
+                'email': self.email,
+                'password': 'wrongpassword',
+            }
+        }
+
+        response = self.client.post(self.url, user_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_account_login_invalid_email(self):
+        user_data = {
+            'user': {
+                'email': 'invalid@example.com',
+                'password': self.password,
+            }
+        }
+
+        response = self.client.post(self.url, user_data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_logout(self):
+        logout_url = '/api/users/logout'
+        response = self.client.post(logout_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
     
     
         
@@ -110,6 +156,11 @@ class UserViewTestCase(APITestCase):
         response = self.client.put(self.url, user_data, format='json')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)  
+    
+    def test_user_view_with_invalid_token(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + 'invalidtoken')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         
         
 class ProfileDetailViewTestCase(APITestCase):
@@ -157,3 +208,23 @@ class ProfileDetailViewTestCase(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         
+     def test_profile_detail_view_invalid_token(self):
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + 'invalidtoken')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_profile_detail_view_no_token(self):
+        self.client.credentials()  # Unset the token
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_profile_follow_invalid_token(self):
+        second_user = User.objects.create_user(
+            email='test2@gmail.com',
+            username='test2user',
+            password='password'
+        )
+        follow_url = f'/api/profiles/{second_user.username}/follow'
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + 'invalidtoken')
+        response = self.client.post(follow_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
