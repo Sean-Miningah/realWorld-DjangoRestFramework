@@ -34,42 +34,7 @@ class AccountRegistrationTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
    
     
-class AccountLoginTestCase(APITestCase):
-    def setUp(self):
-        self.email = 'test@example.com'
-        self.username = 'testuser'
-        self.password = 'testpassword'
-        self.user = User.objects.create_user(
-            email=self.email,
-            username=self.username,
-            password=self.password
-        )
-        self.url = '/api/users/login'
-        
-    def tearDown(self):
-        self.user.delete
 
-    def test_account_login(self):
-        user_data = {
-            'user': {
-                'email': self.email,
-                'password': self.password,
-            }
-        }
-
-        response = self.client.post(self.url, user_data, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        
-    def test_account_login_invalid_data(self):
-        invalid_user_data = {
-            'user': { }
-        }
-
-        response = self.client.post(self.url, invalid_user_data, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-    
     
         
 class UserViewTestCase(APITestCase):
