@@ -1,0 +1,118 @@
+name: Claude Query Doctor Review
+
+# Runs after the "Query Doctor" workflow finishes on a PR, so the
+# query_doctor.log it produced during the test suite is available as an
+# artifact for this review to read.
+on:
+  workflow_run:
+    workflows: ["Query Doctor"]
+    types: [completed]
+
+jobs:
+  claude-review:
+    # Runs whether the triggering workflow passed or failed; only an actual
+    # cancellation skips it. head_repository check: this privileged job
+    # checks out the PR's head ref, so it must only run for PRs whose head
+    # branch lives in this repository (never a fork).
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      github.event.workflow_run.conclusion != 'cancelled' &&
+      !endsWith(github.event.workflow_run.actor.login, '[bot]')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      id-token: write
+      actions: read
+    steps:
+      - name: Resolve PR number and head SHA
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prs = context.payload.workflow_run.pull_requests;
+            if (!prs || prs.length === 0) {
+              core.setFailed("No associated pull request found on this workflow_run event.");
+              return;
+            }
+            core.setOutput('number', prs[0].number);
+            core.setOutput('head_sha', prs[0].head.sha);
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ steps.pr.outputs.head_sha }}
+          persist-credentials: false
+
+      - name: Download query-doctor log
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: query-doctor-log
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      # Claude only reads query_doctor.log and the code, and returns its
+      # findings as structured JSON (--json-schema below). It does not run
+      # `gh` itself — posting the comment is a separate, plain bash step
+      # further down.
+      - uses: anthropics/claude-code-action@v1
+        id: review
+        with:
+          anthropic_api_key: ${{ secrets.CLOUD_SECRET }}
+          claude_args: |
+            --model claude-haiku-4-5-20251001
+            --allowedTools "Read,Grep,Glob,Bash(git:*),Bash(cat:*),Bash(test:*)"
+            --json-schema '{"type":"object","properties":{"has_findings":{"type":"boolean","description":"true only if query_doctor.log exists, is non-empty, and contains at least one finding relevant to this PR"},"report":{"type":"string","description":"Markdown report, one entry per confirmed finding: file:line, the query/model involved, why it happens, and a concrete fix (or, if no acceptable fix was found, just the problem). Empty string if has_findings is false."}},"required":["has_findings","report"]}'
+          show_full_output: true
+          prompt: |
+            Open the file query_doctor.log at the repo root (downloaded as
+            a build artifact into this checkout by the test workflow that
+            ran just before this review) and check what findings
+            query-doctor has left there:
+            ```
+            test -s query_doctor.log && cat query_doctor.log || echo "no findings"
+            ```
+
+            If there are no findings, or the file does not exist or is
+            empty: set has_findings to false and report to an empty string.
+            Do not invent findings.
+
+            If there are findings: first get the list of files changed by
+            this PR:
+            ```
+            git diff --name-only origin/master...HEAD
+            ```
+            A finding is relevant only if the file in its file:line is in
+            that list, or the N+1 is caused by code changed in this PR's
+            diff (`git diff origin/master...HEAD`). Discard every other
+            finding — do not include it even if it is a real problem. For
+            each relevant finding, open the exact file/line it
+            implicates and read the surrounding code to confirm it's a real
+            problem, not a false positive.
+
+            For each confirmed finding, study the code and propose a fix. If
+            you cannot find an acceptable fix, do not propose one — only
+            point out the problem query-doctor detected.
+
+            Set has_findings to true only if at least one finding was
+            confirmed as real. Put the findings (and fixes, where found) in
+            report as markdown: file:line, the query/model involved, why it
+            happens, and the fix (or just the problem if no fix was found).
+            Do not add any other sections (no summary, test coverage,
+            security, best-practices, or verdict) — only the confirmed
+            findings.
+
+      # Deterministic, non-AI step: posts the comment itself whenever Claude
+      # reported at least one confirmed finding.
+      - name: Post query-doctor findings as a PR comment
+        if: fromJSON(steps.review.outputs.structured_output).has_findings == true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          REPORT: ${{ fromJSON(steps.review.outputs.structured_output).report }}
+        run: |
+          printf '%s' "$REPORT" > /tmp/review.md
+          gh pr comment "$PR_NUMBER" --body-file /tmp/review.md
