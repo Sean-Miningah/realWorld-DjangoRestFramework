@@ -25,7 +25,9 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.CLOUD_SECRET }}
-          claude_args: "--model claude-haiku-4-5-20251001"
+          claude_args: |
+            --model claude-haiku-4-5-20251001
+            --allowedTools "Bash(gh pr:*),Bash(gh api:*),Bash(git:*),Bash(echo:*),Bash(md5sum:*),Bash(cut:*),Bash(filterdiff:*),Bash(grep:*),Bash(awk:*)"
           show_full_output: true
           use_sticky_comment: true
           prompt: |
